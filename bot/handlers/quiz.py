@@ -1,7 +1,9 @@
 """Quiz handler with FSM"""
+import os
+from pathlib import Path
 from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 
@@ -12,6 +14,9 @@ from bot.services.scoring import calculate_result, get_progress_bar
 from bot.services.topic_manager import create_lead_topic
 from bot.services.pdf_handler import send_pdfs
 from bot.utils.formatting import format_question_message, format_result_message
+
+# Path to quiz images
+QUIZ_IMAGES_DIR = Path(__file__).parent.parent.parent / "assets" / "quiz"
 
 router = Router()
 
@@ -45,17 +50,36 @@ async def start_quiz(event: Message | CallbackQuery, state: FSMContext):
     text = format_question_message(1, total, question.text)
     text += f"\n\n{progress}"
 
+    # Check if image exists for this question
+    image_path = QUIZ_IMAGES_DIR / "q1.jpg"
+
     if isinstance(event, CallbackQuery):
-        await event.message.edit_text(
-            text,
-            reply_markup=get_quiz_keyboard(question)
-        )
+        # For callback query, delete old message and send new one with photo
+        if image_path.exists():
+            await event.message.delete()
+            await event.message.answer_photo(
+                photo=FSInputFile(image_path),
+                caption=text,
+                reply_markup=get_quiz_keyboard(question)
+            )
+        else:
+            await event.message.edit_text(
+                text,
+                reply_markup=get_quiz_keyboard(question)
+            )
         await event.answer()
     else:
-        await event.answer(
-            text,
-            reply_markup=get_quiz_keyboard(question)
-        )
+        if image_path.exists():
+            await event.answer_photo(
+                photo=FSInputFile(image_path),
+                caption=text,
+                reply_markup=get_quiz_keyboard(question)
+            )
+        else:
+            await event.answer(
+                text,
+                reply_markup=get_quiz_keyboard(question)
+            )
 
     await state.set_state(QuizStates.question_1)
 
@@ -97,10 +121,23 @@ async def process_answer(callback: CallbackQuery, state: FSMContext):
     text = format_question_message(next_question_id, total_questions, next_question.text)
     text += f"\n\n{progress}"
 
-    await callback.message.edit_text(
-        text,
-        reply_markup=get_quiz_keyboard(next_question)
-    )
+    # Check if image exists for this question
+    image_path = QUIZ_IMAGES_DIR / f"q{next_question_id}.jpg"
+
+    if image_path.exists():
+        # Delete old message and send new one with photo
+        await callback.message.delete()
+        await callback.message.answer_photo(
+            photo=FSInputFile(image_path),
+            caption=text,
+            reply_markup=get_quiz_keyboard(next_question)
+        )
+    else:
+        # Just edit text if no image
+        await callback.message.edit_text(
+            text,
+            reply_markup=get_quiz_keyboard(next_question)
+        )
 
     # Update state
     state_name = f"question_{next_question_id}"
