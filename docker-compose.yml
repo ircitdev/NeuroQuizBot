@@ -8,8 +8,6 @@ services:
     env_file: .env
     volumes:
       - ./data:/app/data
-      - ./Montserrat-Regular.ttf:/app/Montserrat-Regular.ttf
-      - ./Montserrat-Black.ttf:/app/Montserrat-Black.ttf
       - ./logo.jpg:/app/logo.jpg
       - ./assets:/app/assets
     logging:
