@@ -26,8 +26,42 @@ async def on_startup(bot: Bot):
     await db.init_db()
     logger.info("Database initialized")
 
+    # Set bot commands for regular users
+    from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
+    from bot.config import ADMIN_IDS
+
+    # Commands for all users
+    default_commands = [
+        BotCommand(command="start", description="Начать работу с ботом"),
+        BotCommand(command="quiz", description="Пройти квиз по нейрофизиологии"),
+        BotCommand(command="result", description="Показать мой результат"),
+        BotCommand(command="help", description="Справка и помощь"),
+    ]
+
+    await bot.set_my_commands(default_commands, scope=BotCommandScopeDefault())
+
+    # Commands for admins (with /stats)
+    admin_commands = [
+        BotCommand(command="start", description="Начать работу с ботом"),
+        BotCommand(command="quiz", description="Пройти квиз по нейрофизиологии"),
+        BotCommand(command="result", description="Показать мой результат"),
+        BotCommand(command="help", description="Справка и помощь"),
+        BotCommand(command="stats", description="📊 Статистика бота (только для админов)"),
+    ]
+
+    # Set admin commands for each admin
+    for admin_id in ADMIN_IDS:
+        try:
+            await bot.set_my_commands(
+                admin_commands,
+                scope=BotCommandScopeChat(chat_id=admin_id)
+            )
+        except Exception as e:
+            logger.warning(f"Could not set commands for admin {admin_id}: {e}")
+
     bot_info = await bot.get_me()
     logger.info(f"Bot started: @{bot_info.username}")
+    logger.info(f"Commands set for {len(ADMIN_IDS)} admin(s)")
 
 
 async def on_shutdown(bot: Bot):
