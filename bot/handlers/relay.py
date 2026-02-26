@@ -60,10 +60,10 @@ async def user_to_manager(message: Message, state: FSMContext):
 
     User writes to bot → Bot forwards to their topic in supergroup
     """
-    # Don't relay during quiz
+    # Don't relay during active quiz (but allow after completion)
     current_state = await state.get_state()
-    if current_state and current_state.startswith("QuizStates:"):
-        # User is in quiz, don't relay
+    if current_state and current_state.startswith("QuizStates:") and not current_state.endswith(":completed"):
+        # User is actively taking quiz, don't relay
         return
 
     # Get user data

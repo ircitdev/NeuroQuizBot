@@ -217,7 +217,8 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
             "✅ Спасибо за прохождение квиза!"
         )
 
-    await state.set_state(QuizStates.completed)
+    # Clear FSM state so user can send messages to topic
+    await state.clear()
     await callback.answer()
 
 
