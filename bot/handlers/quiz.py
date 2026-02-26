@@ -56,8 +56,10 @@ async def start_quiz(event: Message | CallbackQuery, state: FSMContext):
     if isinstance(event, CallbackQuery):
         # For callback query, delete old message and send new one with photo
         if image_path.exists():
+            chat_id = event.message.chat.id
             await event.message.delete()
-            await event.message.answer_photo(
+            await event.bot.send_photo(
+                chat_id=chat_id,
                 photo=FSInputFile(image_path),
                 caption=text,
                 reply_markup=get_quiz_keyboard(question)
@@ -126,8 +128,10 @@ async def process_answer(callback: CallbackQuery, state: FSMContext):
 
     if image_path.exists():
         # Delete old message and send new one with photo
+        chat_id = callback.message.chat.id
         await callback.message.delete()
-        await callback.message.answer_photo(
+        await callback.bot.send_photo(
+            chat_id=chat_id,
             photo=FSInputFile(image_path),
             caption=text,
             reply_markup=get_quiz_keyboard(next_question)
