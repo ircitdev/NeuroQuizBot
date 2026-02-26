@@ -40,13 +40,14 @@ async def on_startup(bot: Bot):
 
     await bot.set_my_commands(default_commands, scope=BotCommandScopeDefault())
 
-    # Commands for admins (with /stats)
+    # Commands for admins (with /stats and /broadcast)
     admin_commands = [
         BotCommand(command="start", description="Начать работу с ботом"),
         BotCommand(command="quiz", description="Пройти квиз по нейрофизиологии"),
         BotCommand(command="result", description="Показать мой результат"),
         BotCommand(command="help", description="Справка и помощь"),
-        BotCommand(command="stats", description="📊 Статистика бота (только для админов)"),
+        BotCommand(command="stats", description="📊 Статистика бота"),
+        BotCommand(command="broadcast", description="📢 Массовая рассылка"),
     ]
 
     # Set admin commands for each admin
