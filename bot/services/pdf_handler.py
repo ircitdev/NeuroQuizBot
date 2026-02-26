@@ -2,15 +2,32 @@
 import os
 from typing import Dict, Any
 from io import BytesIO
+from pathlib import Path
 from aiogram.types import Message, FSInputFile, BufferedInputFile
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Table, TableStyle, Image
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from bot.keyboards.quiz_kb import get_event_keyboard
 from bot.services.quiz_data import TAG_LABELS, TAG_TECHNIQUES
+
+# Register Montserrat font
+BASE_DIR = Path(__file__).parent.parent.parent
+FONT_PATH = BASE_DIR / "Montserrat-Regular.ttf"
+FONT_BOLD_PATH = BASE_DIR / "Montserrat-Black.ttf"
+LOGO_PATH = BASE_DIR / "logo.jpg"
+
+# Register fonts
+try:
+    pdfmetrics.registerFont(TTFont('Montserrat', str(FONT_PATH)))
+    pdfmetrics.registerFont(TTFont('Montserrat-Bold', str(FONT_BOLD_PATH)))
+except Exception as e:
+    print(f"Warning: Could not register Montserrat font: {e}")
+    # Fallback to Helvetica if font registration fails
 
 # Color palette matching the website
 NEON_BLUE = colors.HexColor('#00B4FF')
@@ -48,6 +65,10 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
     story = []
     styles = getSampleStyleSheet()
 
+    # Determine font names based on availability
+    font_regular = 'Montserrat' if FONT_PATH.exists() else 'Helvetica'
+    font_bold = 'Montserrat-Bold' if FONT_BOLD_PATH.exists() else 'Helvetica-Bold'
+
     # Modern styles matching website design
     title_style = ParagraphStyle(
         'CustomTitle',
@@ -57,7 +78,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         spaceAfter=20,
         alignment=TA_CENTER,
         leading=38,
-        fontName='Helvetica-Bold'
+        fontName=font_bold
     )
 
     title_accent_style = ParagraphStyle(
@@ -68,7 +89,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         spaceAfter=30,
         alignment=TA_CENTER,
         leading=34,
-        fontName='Helvetica-Bold'
+        fontName=font_bold
     )
 
     heading_style = ParagraphStyle(
@@ -79,7 +100,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         spaceAfter=12,
         spaceBefore=20,
         leading=22,
-        fontName='Helvetica-Bold'
+        fontName=font_bold
     )
 
     subheading_style = ParagraphStyle(
@@ -90,7 +111,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         spaceAfter=10,
         spaceBefore=10,
         leading=18,
-        fontName='Helvetica-Bold'
+        fontName=font_bold
     )
 
     body_style = ParagraphStyle(
@@ -101,7 +122,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         spaceAfter=12,
         leading=16,
         alignment=TA_JUSTIFY,
-        fontName='Helvetica'
+        fontName=font_regular
     )
 
     body_gray_style = ParagraphStyle(
@@ -112,7 +133,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         spaceAfter=10,
         leading=14,
         alignment=TA_LEFT,
-        fontName='Helvetica'
+        fontName=font_regular
     )
 
     highlight_style = ParagraphStyle(
@@ -122,7 +143,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         textColor=NEON_BLUE,
         spaceAfter=8,
         leading=16,
-        fontName='Helvetica-Bold'
+        fontName=font_bold
     )
 
     # Extract data
@@ -162,7 +183,7 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         ('TEXTCOLOR', (0, 0), (-1, -1), TEXT_DARK),
         ('ALIGN', (0, 0), (0, -1), 'LEFT'),
         ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('FONTNAME', (0, 0), (-1, -1), font_regular),
         ('FONTSIZE', (0, 0), (-1, -1), 11),
         ('TOPPADDING', (0, 0), (-1, -1), 12),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
@@ -354,6 +375,17 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
         '<font color="#6B7280" size="9">📱 Вернитесь в бота, чтобы связаться с нашей командой и узнать больше!</font>',
         body_gray_style
     ))
+
+    story.append(Spacer(1, 1*cm))
+
+    # Add logo at the bottom if available
+    if LOGO_PATH.exists():
+        try:
+            logo = Image(str(LOGO_PATH), width=8*cm, height=None, kind='proportional')
+            logo.hAlign = 'CENTER'
+            story.append(logo)
+        except Exception as e:
+            print(f"Warning: Could not add logo: {e}")
 
     # Build PDF
     doc.build(story)
