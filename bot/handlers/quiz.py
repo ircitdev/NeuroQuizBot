@@ -152,6 +152,9 @@ async def process_answer(callback: CallbackQuery, state: FSMContext):
 
 async def complete_quiz(callback: CallbackQuery, state: FSMContext):
     """Complete quiz and show results"""
+    # Answer callback immediately to remove loading indicator
+    await callback.answer()
+
     data = await state.get_data()
     answers = data.get('answers', {})
 
