@@ -216,6 +216,7 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
 
     # Create topic in supergroup (or get existing)
     try:
+        print(f"[QUIZ] Creating topic for user {user_id}...")
         thread_id = await create_lead_topic(
             callback.bot,
             user_data,
@@ -226,10 +227,13 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
                 'answers': answers
             }
         )
+        print(f"[QUIZ] Topic created/retrieved: thread_id={thread_id}")
 
         # Save thread_id to database if it's new
         if not user_data.get('thread_id'):
+            print(f"[QUIZ] Saving thread_id to database...")
             await db.update_user_thread(user_id, thread_id)
+            print(f"[QUIZ] Thread ID saved")
 
         # Notify user
         await callback.message.answer(
@@ -237,8 +241,11 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
             "💬 Теперь вы можете писать сообщения прямо сюда — "
             "наши менеджеры получат их и ответят вам."
         )
+        print(f"[QUIZ] User notified, quiz completed successfully")
     except Exception as e:
-        print(f"Error creating topic: {e}")
+        print(f"[QUIZ] Error creating topic: {e}")
+        import traceback
+        traceback.print_exc()
         # Don't fail the whole flow if topic creation fails
         await callback.message.answer(
             "✅ Спасибо за прохождение квиза!"

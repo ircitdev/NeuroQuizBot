@@ -37,21 +37,34 @@ async def create_lead_topic(bot: Bot, user_data: Dict[str, Any], quiz_result: Di
     topic_name = topic_name[:128]
 
     # Create forum topic
-    result = await bot.create_forum_topic(
-        chat_id=SUPERGROUP_CHAT_ID,
-        name=topic_name
-    )
+    print(f"[TOPIC] Creating forum topic: {topic_name} in chat {SUPERGROUP_CHAT_ID}")
+    try:
+        result = await bot.create_forum_topic(
+            chat_id=SUPERGROUP_CHAT_ID,
+            name=topic_name
+        )
+        print(f"[TOPIC] Forum topic created successfully")
+    except Exception as e:
+        print(f"[TOPIC] Error creating forum topic: {e}")
+        raise
 
     thread_id = result.message_thread_id
+    print(f"[TOPIC] Thread ID: {thread_id}")
 
     # Send lead card to topic
     card = format_lead_card(user_data, quiz_result)
-    await bot.send_message(
-        chat_id=SUPERGROUP_CHAT_ID,
-        message_thread_id=thread_id,
-        text=card,
-        parse_mode="HTML"
-    )
+    print(f"[TOPIC] Sending lead card to thread {thread_id}...")
+    try:
+        await bot.send_message(
+            chat_id=SUPERGROUP_CHAT_ID,
+            message_thread_id=thread_id,
+            text=card,
+            parse_mode="HTML"
+        )
+        print(f"[TOPIC] Lead card sent successfully")
+    except Exception as e:
+        print(f"[TOPIC] Error sending lead card: {e}")
+        raise
 
     return thread_id
 
