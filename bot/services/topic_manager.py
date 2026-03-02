@@ -10,6 +10,8 @@ async def create_lead_topic(bot: Bot, user_data: Dict[str, Any], quiz_result: Di
     """
     Create a forum topic in supergroup for the lead
 
+    If user already has a thread_id, returns existing thread_id instead of creating new one.
+
     Args:
         bot: Bot instance
         user_data: User data dict
@@ -18,6 +20,12 @@ async def create_lead_topic(bot: Bot, user_data: Dict[str, Any], quiz_result: Di
     Returns:
         thread_id: Forum thread ID
     """
+    # Check if user already has a topic
+    existing_thread_id = user_data.get("thread_id")
+    if existing_thread_id:
+        print(f"User {user_data.get('tg_user_id')} already has topic {existing_thread_id}, skipping creation")
+        return existing_thread_id
+
     # Create topic name
     name = user_data.get("first_name", "Аноним")
     username = user_data.get("username", "")

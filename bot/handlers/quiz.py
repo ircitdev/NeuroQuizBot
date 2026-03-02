@@ -199,7 +199,7 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
         }
     )
 
-    # Create topic in supergroup
+    # Create topic in supergroup (or get existing)
     try:
         thread_id = await create_lead_topic(
             callback.bot,
@@ -212,8 +212,9 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
             }
         )
 
-        # Save thread_id to database
-        await db.update_user_thread(user_id, thread_id)
+        # Save thread_id to database if it's new
+        if not user_data.get('thread_id'):
+            await db.update_user_thread(user_id, thread_id)
 
         # Notify user
         await callback.message.answer(
