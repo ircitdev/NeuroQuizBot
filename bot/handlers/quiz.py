@@ -168,14 +168,21 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
         main_tag=quiz_result.main_tag
     )
 
-    # Edit message to show result
+    # Delete question message and send result
     result_text = format_result_message({
         'total_score': quiz_result.total_score,
         'profile': quiz_result.profile,
         'main_tag': quiz_result.main_tag
     })
 
-    await callback.message.edit_text(
+    # Delete old message (might be a photo)
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass  # Ignore if deletion fails
+
+    # Send result as new message
+    await callback.message.answer(
         result_text,
         parse_mode="HTML"
     )
