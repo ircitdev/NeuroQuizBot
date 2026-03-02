@@ -13,7 +13,8 @@ from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from bot.keyboards.quiz_kb import get_event_keyboard
-from bot.services.quiz_data import TAG_LABELS, TAG_TECHNIQUES
+from bot.services.quiz_data import TAG_LABELS, TAG_TECHNIQUES, TAG_IMAGES
+import requests
 
 # Register Montserrat font
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -247,6 +248,20 @@ def generate_personalized_pdf(user_data: Dict[str, Any], quiz_result: Dict[str, 
     # Priority technique with highlight box
     story.append(Paragraph("🎯 Ваша приоритетная техника", heading_style))
     story.append(Spacer(1, 0.3*cm))
+
+    # Add priority image if available
+    priority_image_url = TAG_IMAGES.get(main_tag)
+    if priority_image_url:
+        try:
+            response = requests.get(priority_image_url, timeout=10)
+            if response.status_code == 200:
+                img_buffer = BytesIO(response.content)
+                priority_img = Image(img_buffer, width=16*cm, height=None, kind='proportional')
+                priority_img.hAlign = 'CENTER'
+                story.append(priority_img)
+                story.append(Spacer(1, 0.5*cm))
+        except Exception as e:
+            print(f"Warning: Could not load priority image: {e}")
 
     # Create highlighted box for priority
     priority_data = [

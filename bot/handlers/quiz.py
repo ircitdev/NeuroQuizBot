@@ -9,7 +9,7 @@ from aiogram.fsm.state import State, StatesGroup
 
 from bot.db import db
 from bot.keyboards.quiz_kb import get_quiz_keyboard, get_event_keyboard
-from bot.services.quiz_data import get_question, get_total_questions
+from bot.services.quiz_data import get_question, get_total_questions, TAG_IMAGES
 from bot.services.scoring import calculate_result, get_progress_bar
 from bot.services.topic_manager import create_lead_topic
 from bot.services.pdf_handler import send_pdfs
@@ -188,12 +188,30 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
     except Exception as e:
         print(f"[QUIZ] Could not delete message: {e}")
 
-    # Send result as new message
-    await callback.message.answer(
-        result_text,
-        parse_mode="HTML"
-    )
-    print(f"[QUIZ] Result message sent")
+    # Send result as new message with photo
+    main_tag = quiz_result.main_tag
+    image_url = TAG_IMAGES.get(main_tag)
+
+    if image_url:
+        try:
+            await callback.message.answer_photo(
+                photo=image_url,
+                caption=result_text,
+                parse_mode="HTML"
+            )
+            print(f"[QUIZ] Result message with photo sent")
+        except Exception as e:
+            print(f"[QUIZ] Could not send photo, sending text only: {e}")
+            await callback.message.answer(
+                result_text,
+                parse_mode="HTML"
+            )
+    else:
+        await callback.message.answer(
+            result_text,
+            parse_mode="HTML"
+        )
+        print(f"[QUIZ] Result message sent")
 
     # Send PDFs (personalized + general presentation)
     try:
@@ -275,8 +293,28 @@ async def show_result(message: Message):
         'main_tag': result['main_tag']
     })
 
-    await message.answer(
-        result_text,
-        parse_mode="HTML",
-        reply_markup=get_event_keyboard()
-    )
+    # Send result with photo
+    main_tag = result['main_tag']
+    image_url = TAG_IMAGES.get(main_tag)
+
+    if image_url:
+        try:
+            await message.answer_photo(
+                photo=image_url,
+                caption=result_text,
+                parse_mode="HTML",
+                reply_markup=get_event_keyboard()
+            )
+        except Exception as e:
+            print(f"[QUIZ] Could not send photo in /result, sending text only: {e}")
+            await message.answer(
+                result_text,
+                parse_mode="HTML",
+                reply_markup=get_event_keyboard()
+            )
+    else:
+        await message.answer(
+            result_text,
+            parse_mode="HTML",
+            reply_markup=get_event_keyboard()
+        )

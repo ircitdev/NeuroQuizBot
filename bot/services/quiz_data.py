@@ -105,3 +105,12 @@ TAG_TECHNIQUES = {
     "decisions": "Техника «Дерево решений» — нейрофизиология принятия решений",
     "recovery": "Техника «Нейростарт» — утренняя активация мозга",
 }
+
+
+TAG_IMAGES = {
+    "stress": "https://storage.googleapis.com/uspeshnyy-projects/smit/smit34.ru/priority/stress.jpg",
+    "focus": "https://storage.googleapis.com/uspeshnyy-projects/smit/smit34.ru/priority/focus.jpg",
+    "memory": "https://storage.googleapis.com/uspeshnyy-projects/smit/smit34.ru/priority/memory.jpg",
+    "decisions": "https://storage.googleapis.com/uspeshnyy-projects/smit/smit34.ru/priority/decisions.jpg",
+    "recovery": "https://storage.googleapis.com/uspeshnyy-projects/smit/smit34.ru/priority/recovery.jpg",
+}
