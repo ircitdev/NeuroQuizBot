@@ -38,6 +38,6 @@ def get_start_quiz_keyboard() -> InlineKeyboardMarkup:
 def get_event_keyboard() -> InlineKeyboardMarkup:
     """Get keyboard with event registration buttons"""
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🎟 Забронировать место", url="https://t.me/your_event_link")],
-        [InlineKeyboardButton(text="🌐 Подробнее о мероприятии", url="https://your-event-website.com")],
+        [InlineKeyboardButton(text="🎟 Забронировать место", url="https://dev.uspeshnyy.ru/www/tulaevneurons2/?utm_campaign=telegram&utm_source=quiz")],
+        [InlineKeyboardButton(text="🌐 Подробнее о мероприятии", url="https://dev.uspeshnyy.ru/www/tulaevneurons2/?utm_campaign=telegram&utm_source=quiz")],
     ])
