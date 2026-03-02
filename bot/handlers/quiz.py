@@ -155,12 +155,15 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
     # Answer callback immediately to remove loading indicator
     await callback.answer()
 
+    print(f"[QUIZ] User {callback.from_user.id} completed quiz")
+
     data = await state.get_data()
     answers = data.get('answers', {})
 
     # Calculate result
     user_id = callback.from_user.id
     quiz_result = calculate_result(user_id, answers)
+    print(f"[QUIZ] Result calculated: {quiz_result.profile}, score: {quiz_result.total_score}")
 
     # Save to database
     await db.save_quiz_result(
@@ -170,6 +173,7 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
         profile=quiz_result.profile,
         main_tag=quiz_result.main_tag
     )
+    print(f"[QUIZ] Result saved to DB")
 
     # Delete question message and send result
     result_text = format_result_message({
@@ -181,26 +185,34 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
     # Delete old message (might be a photo)
     try:
         await callback.message.delete()
-    except Exception:
-        pass  # Ignore if deletion fails
+    except Exception as e:
+        print(f"[QUIZ] Could not delete message: {e}")
 
     # Send result as new message
     await callback.message.answer(
         result_text,
         parse_mode="HTML"
     )
+    print(f"[QUIZ] Result message sent")
 
     # Send PDFs (personalized + general presentation)
-    user_data = await db.get_user(user_id)
-    await send_pdfs(
-        callback.message,
-        user_data,
-        {
-            'total_score': quiz_result.total_score,
-            'profile': quiz_result.profile,
-            'main_tag': quiz_result.main_tag
-        }
-    )
+    try:
+        print(f"[QUIZ] Starting PDF generation...")
+        user_data = await db.get_user(user_id)
+        await send_pdfs(
+            callback.message,
+            user_data,
+            {
+                'total_score': quiz_result.total_score,
+                'profile': quiz_result.profile,
+                'main_tag': quiz_result.main_tag
+            }
+        )
+        print(f"[QUIZ] PDFs sent successfully")
+    except Exception as e:
+        print(f"[QUIZ] Error sending PDFs: {e}")
+        import traceback
+        traceback.print_exc()
 
     # Create topic in supergroup (or get existing)
     try:
@@ -234,7 +246,6 @@ async def complete_quiz(callback: CallbackQuery, state: FSMContext):
 
     # Clear FSM state so user can send messages to topic
     await state.clear()
-    await callback.answer()
 
 
 @router.message(Command("result"))
