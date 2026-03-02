@@ -22,6 +22,6 @@ if not BOT_TOKEN:
 DB_PATH = DATABASE_URL.replace("sqlite:///", "")
 
 # Event settings
-EVENT_NAME = "Всемогущие Нейроны 3"
-EVENT_DATE = "20 марта 2026"
+EVENT_NAME = "Всемогущие нейроны: Когнитивное долголетие"
+EVENT_DATE = "30 апреля 2026 года"
 EVENT_VENUE = "Крокус-Экспо"
